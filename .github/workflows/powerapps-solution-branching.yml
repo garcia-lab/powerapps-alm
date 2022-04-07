@@ -1,0 +1,55 @@
+name: powerapps-solution-branching
+
+# Retrieve, expand, and branch a Power App solution from our sandbox environment
+# Uses Power Platform actions available at https://github.com/microsoft/powerplatform-actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  retrieve-from-sandbox:
+    runs-on: self-hosted
+
+    steps:
+    
+    # Check out the repository
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+
+    # Verify environment connectivity
+    - name: who-am-i
+      uses: microsoft/powerplatform-actions/who-am-i@v0
+      with:
+        environment-url: 'https://orgd1de6c60.crm.dynamics.com'
+        user-name: 'james_garcialab.io#EXT#@microsoft.onmicrosoft.com'
+        password-secret: ${{ secrets.PSWD }}
+    
+    # Export the solution from Power Platform
+    - name: export-solution
+      uses: microsoft/powerplatform-actions/export-solution@v0
+      with:
+        environment-url: 'https://orgd1de6c60.crm.dynamics.com'
+        user-name: 'james_garcialab.io#EXT#@microsoft.onmicrosoft.com'
+        password-secret: ${{ secrets.PSWD }}
+        solution-name: GarcialabBirdsofaFeather
+        solution-output-file: workspace/exported/GarcialabBirdsofaFeather.zip
+
+    # Unpack the solution after the export
+    - name: unpack-solution
+      uses: microsoft/powerplatform-actions/unpack-solution@v0
+      with:
+        solution-file: workspace/exported/GarcialabBirdsofaFeather.zip
+        solution-folder: workspace/solutions/GarcialabBirdsofaFeather
+        solution-type: 'Unmanaged'
+        overwrite-files: true
+
+    # Create the branch based on the unpacked solution
+    - name: branch-solution
+      uses: microsoft/powerplatform-actions/branch-solution@v0
+      with:
+        solution-folder: workspace/solutions/GarcialabBirdsofaFeather
+        solution-target-folder: solutions/GarcialabBirdsofaFeather
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        allow-empty-commit: true
