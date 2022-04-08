@@ -1,0 +1,91 @@
+name: production-deploy
+
+# Pack and import our solution into production
+# Uses Power Platform actions available at https://github.com/microsoft/powerplatform-actions
+
+on:
+  # Run when dispatched
+  workflow_dispatch:
+  
+  # Run when a GitHub Release is created
+  release:
+    types: [created]
+
+jobs:
+
+  convert-to-managed:
+    runs-on: windows-latest
+
+    steps:
+    
+    # Check out the repository
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+    
+    # Create a packed artifact for the build
+    - name: pack-solution
+      uses: microsoft/powerplatform-actions/pack-solution@v0
+      with:
+        solution-folder: solutions/GarcialabBirdsofaFeather
+        solution-file: workspace/solutions/GarcialabBirdsofaFeather.zip
+        solution-type: Unmanaged
+
+    # Import Solution
+    - name: import-solution
+      uses: microsoft/powerplatform-actions/import-solution@v0
+      with:
+        environment-url: 'https://org6b1b211c.crm.dynamics.com/'
+        user-name: 'james@garcialabio.onmicrosoft.com'
+        password-secret: ${{ secrets.PSWD }}
+        solution-file: workspace/solutions/GarcialabBirdsofaFeather.zip
+        force-overwrite: true
+        publish-changes: true
+
+    # Export Solution
+    - name: export-solution
+      uses: microsoft/powerplatform-actions/export-solution@v0
+      with:
+        environment-url: 'https://org6b1b211c.crm.dynamics.com/'
+        user-name: 'james@garcialabio.onmicrosoft.com'
+        password-secret: ${{ secrets.PSWD }}
+        solution-name: GarcialabBirdsofaFeather
+        managed: true
+        solution-output-file: workspace/ship/GarcialabBirdsofaFeather.zip
+
+    # Make the build artifact available to the next job
+    - name: upload-artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: managedSolutions
+        path: workspace/ship/GarcialabBirdsofaFeather.zip
+
+  release-to-prod:
+    needs: [ convert-to-managed ]
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+
+    # Get the artifact from our build output in the last job
+    - name: download-artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: managedSolutions
+        path: workspace/release/
+
+    - run: get-childitem .\workspace\release\
+
+    # Import the solution into the production environment
+    - name: import-solution
+      uses: microsoft/powerplatform-actions/import-solution@v0
+      with:
+        environment-url: 'https://orge28915c6.crm.dynamics.com/'
+        user-name: 'james@garcialabio.onmicrosoft.com'
+        password-secret: ${{ secrets.PSWD }}
+        solution-file: workspace/release/GarcialabBirdsofaFeather.zip
+        force-overwrite: true
+        publish-changes: true
