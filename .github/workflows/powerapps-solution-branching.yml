@@ -22,16 +22,16 @@ jobs:
     - name: who-am-i
       uses: microsoft/powerplatform-actions/who-am-i@v0
       with:
-        environment-url: 'https://orgd1de6c60.crm.dynamics.com'
-        user-name: 'james_garcialab.io#EXT#@microsoft.onmicrosoft.com'
+        environment-url: 'https://org6b1b211c.crm.dynamics.com/'
+        user-name: 'james@garcialabio.onmicrosoft.com'
         password-secret: ${{ secrets.PSWD }}
     
     # Export the solution from Power Platform
     - name: export-solution
       uses: microsoft/powerplatform-actions/export-solution@v0
       with:
-        environment-url: 'https://orgd1de6c60.crm.dynamics.com'
-        user-name: 'james_garcialab.io#EXT#@microsoft.onmicrosoft.com'
+        environment-url: 'https://org6b1b211c.crm.dynamics.com/'
+        user-name: 'james@garcialabio.onmicrosoft.com'
         password-secret: ${{ secrets.PSWD }}
         solution-name: GarcialabBirdsofaFeather
         solution-output-file: workspace/exported/GarcialabBirdsofaFeather.zip
