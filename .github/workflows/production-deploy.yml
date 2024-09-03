@@ -72,7 +72,7 @@ jobs:
 
     # Get the artifact from our build output in the last job
     - name: download-artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: managedSolutions
         path: workspace/release/
